@@ -292,3 +292,185 @@ class Laberinto:
         if c is None:
             return False
         return c.permite_enemigo()
+
+# ============================================================#
+#                  Jugador, Enemigo y trampas                 #
+# ============================================================#
+
+#E: fila (int), col (int)
+#S: X
+#R: X
+# Clase base con posición (fila, col) en el mapa.
+
+class PersonajeBase:
+    def __init__(self, fila, col):
+        self.fila = fila
+        self.col = col
+
+    #E: X
+    #S: tupla (fila, col)
+    #R: X
+    # Devuelve la posición actual del personaje.
+    
+    def posicion(self):
+        return self.fila, self.col
+
+
+#E: fila (int), col (int), modo (str)
+#S: X
+#R: modo debe ser "escapa" o "cazador"
+# Representa al jugador (escapista o cazador).
+
+class Jugador(PersonajeBase):
+    def __init__(self, fila, col, modo):
+        super().__init__(fila, col)
+        self.modo = modo
+        self.energia_max = 100
+        self.energia = self.energia_max
+        self.vivo = True
+        self.trampas = []          # lista de (fila, col, timestamp)
+        self.ultimo_trampa = 0.0   # tiempo del último intento de trampa
+
+    #E: lab (Laberinto), nf (int), nc (int)
+    #S: bool
+    #R: nf y nc dentro del rango del laberinto
+    # Indica si el jugador puede moverse a la casilla dada según su modo.
+    def puede_mover(self, lab, nf, nc):
+        cas = lab.casilla(nf, nc)
+        if cas is None:
+            return False
+        # MURO: nadie
+        if cas.tipo == MURO:
+            return False
+        # CAMINO: siempre
+        if cas.tipo == CAMINO:
+            return True
+        # LIANA: solo cazador
+        if cas.tipo == LIANA:
+            return self.modo == "cazador"
+        # TUNEL: solo escapista
+        if cas.tipo == TUNEL:
+            return self.modo == "escapa"
+        return False
+
+    #E: lab (Laberinto), df (int), dc (int), corriendo (bool)
+    #S: bool
+    #R: df y dc deben ser -1,0 o 1
+    # Mueve al jugador una casilla si es posible, usando energía si va corriendo.
+    def mover(self, lab, df, dc, corriendo):
+        if not self.vivo:
+            return False
+        nf = self.fila + df
+        nc = self.col + dc
+        if not lab.dentro_rango(nf, nc):
+            return False
+        if not self.puede_mover(lab, nf, nc):
+            return False
+
+        self.fila = nf
+        self.col = nc
+        return True
+
+    #E: X
+    #S: bool
+    #R: X
+    # Indica si el jugador puede colocar una trampa en ese momento.
+    def puede_colocar_trampa(self):
+        ahora = time.time()
+        if len(self.trampas) >= 3:
+            return False
+        if ahora - self.ultimo_trampa < 5.0:
+            return False
+        return True
+
+    #E: X
+    #S: bool
+    #R: X
+    # Coloca una trampa en la posición actual si es posible.
+    def colocar_trampa(self):
+        if self.puede_colocar_trampa():
+            self.trampas.append((self.fila, self.col, time.time()))
+            self.ultimo_trampa = time.time()
+            return True
+        return False
+
+    #E: X
+    #S: X
+    #R: X
+    # Limpia trampas viejas (no se usa tiempo de expiración en este diseño).
+    def limpiar_trampas_viejas(self):
+        nuevas = []
+        for (f, c, t0) in self.trampas:
+            nuevas.append((f, c, t0))
+        self.trampas = nuevas
+
+#E: fila (int), col (int)
+#S: X
+#R: X
+# Representa a un enemigo (cazador o escapista según el modo).
+class Enemigo(PersonajeBase):
+    def __init__(self, fila, col):
+        super().__init__(fila, col)
+        self.vivo = True
+        self.muerto_timestamp = 0.0
+
+    #E: lab (Laberinto), nf (int), nc (int)
+    #S: bool
+    #R: nf y nc dentro de rango
+    # Indica si el enemigo puede estar en esa casilla.
+    def puede_mover(self, lab, nf, nc):
+        return lab.permite_enemigo(nf, nc)
+
+    #E: lab (Laberinto), objetivo_f (int), objetivo_c (int)
+    #S: X
+    #R: X
+    # Mueve al enemigo aproximándose al objetivo usando distancia Manhattan.
+    def mover_hacia(self, lab, objetivo_f, objetivo_c):
+        if not self.vivo:
+            return
+        vecinos = self._vecinos_validos(lab)
+        if not vecinos:
+            return
+        mejor = None
+        mejor_dist = None
+        for nf, nc in vecinos:
+            dist = abs(nf - objetivo_f) + abs(nc - objetivo_c)
+            if mejor is None or dist < mejor_dist:
+                mejor = (nf, nc)
+                mejor_dist = dist
+        if mejor is not None:
+            self.fila, self.col = mejor
+
+    #E: lab (Laberinto), jugador_f (int), jugador_c (int)
+    #S: X
+    #R: X
+    # Mueve al enemigo intentando alejarse del jugador.
+    def mover_alejandose(self, lab, jugador_f, jugador_c):
+        if not self.vivo:
+            return
+        vecinos = self._vecinos_validos(lab)
+        if not vecinos:
+            return
+        mejor = (self.fila, self.col)
+        mejor_dist = abs(self.fila - jugador_f) + abs(self.col - jugador_c)
+        for nf, nc in vecinos:
+            dist = abs(nf - jugador_f) + abs(nc - jugador_c)
+            if dist > mejor_dist:
+                mejor = (nf, nc)
+                mejor_dist = dist
+        self.fila, self.col = mejor
+
+    #E: lab (Laberinto)
+    #S: lista de tuplas (fila,col)
+    #R: X
+    # Devuelve lista de casillas vecinas válidas a las que puede moverse.
+
+    def _vecinos_validos(self, lab):
+        dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        res = []
+        for df, dc in dirs:
+            nf = self.fila + df
+            nc = self.col + dc
+            if lab.dentro_rango(nf, nc) and self.puede_mover(lab, nf, nc):
+                res.append((nf, nc))
+        return res
