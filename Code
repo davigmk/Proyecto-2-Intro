@@ -33,3 +33,25 @@ except Exception:
 
     def _beep(freq, dur):
         pass
+
+#E: Evento (str).
+#S: X.
+#R: evento debe ser una clave conocida o se ignora.
+# Reproduce un sonido diferente según el tipo de evento de juego.
+
+def reproducir_sonido(evento):
+    if evento == "trampa_colocada":
+        _beep(900, 120)
+    elif evento == "enemigo_en_trampa":
+        _beep(500, 180)
+    elif evento == "escapa_gana":
+        _beep(1200, 250)
+        _beep(1400, 250)
+    elif evento == "escapa_pierde":
+        _beep(400, 400)
+    elif evento == "cazador_atrapa":
+        _beep(1100, 180)
+    elif evento == "enemigo_escapa":
+        _beep(600, 220)
+    elif evento == "enemigo_respawn":
+        _beep(800, 100)
