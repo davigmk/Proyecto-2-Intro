@@ -860,3 +860,103 @@ class Juego:
         
                 # enemigos iniciales (después de crear var_dif)
                 self.crear_enemigos_iniciales()
+
+    # popups 
+    #E: titulo (str), texto (str)
+    #S: X
+    #R: X
+    # Muestra un popup con iinfo
+
+    def popup_info(self, titulo, texto):
+        top = tk.Toplevel(self.root)
+        top.title(titulo)
+        top.resizable(False, False)
+        top.grab_set()
+
+        w, h = 420, 260
+        sw = self.root.winfo_screenwidth()
+        sh = self.root.winfo_screenheight()
+        x = (sw // 2) - (w // 2)
+        y = (sh // 2) - (h // 2)
+        top.geometry(f"{w}x{h}+{x}+{y}")
+
+        frame = tk.Frame(top, bg="#020617")
+        frame.pack(fill="both", expand=True, padx=12, pady=12)
+
+        lbl = tk.Label(
+            frame,
+            text=texto,
+            bg="#020617",
+            fg="#e5e7eb",
+            justify="left",
+            wraplength=380
+        )
+        lbl.pack(pady=(4, 12))
+
+        btn = tk.Button(
+            frame,
+            text="Aceptar",
+            command=top.destroy,
+            bg="#2563eb",
+            fg="white",
+            relief="flat",
+            padx=12,
+            pady=4
+        )
+        btn.pack(pady=(0, 6))
+
+        top.wait_window()
+
+    #E: titulo (str), texto (str)
+    #S: X
+    #R: X
+    # Muestra un popup de error
+
+    def popup_error(self, titulo, texto):
+        top = tk.Toplevel(self.root)
+        top.title(titulo)
+        top.resizable(False, False)
+        top.grab_set()
+
+        w, h = 420, 220
+        sw = self.root.winfo_screenwidth()
+        sh = self.root.winfo_screenheight()
+        x = (sw // 2) - (w // 2)
+        y = (sh // 2) - (h // 2)
+        top.geometry(f"{w}x{h}+{x}+{y}")
+
+        frame = tk.Frame(top, bg="#111827")
+        frame.pack(fill="both", expand=True, padx=12, pady=12)
+
+        lbl_t = tk.Label(
+            frame,
+            text=titulo,
+            bg="#111827",
+            fg="#f87171",
+            font=("Segoe UI", 11, "bold")
+        )
+        lbl_t.pack(pady=(0, 6))
+
+        lbl = tk.Label(
+            frame,
+            text=texto,
+            bg="#111827",
+            fg="#e5e7eb",
+            justify="left",
+            wraplength=380
+        )
+        lbl.pack(pady=(0, 12))
+
+        btn = tk.Button(
+            frame,
+            text="Cerrar",
+            command=top.destroy,
+            bg="#b91c1c",
+            fg="white",
+            relief="flat",
+            padx=12,
+            pady=4
+        )
+        btn.pack(pady=(0, 4))
+
+        top.wait_window()
