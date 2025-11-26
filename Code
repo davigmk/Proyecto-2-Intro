@@ -55,3 +55,142 @@ def reproducir_sonido(evento):
         _beep(600, 220)
     elif evento == "enemigo_respawn":
         _beep(800, 100)
+
+# ===========================================================#
+#                 Constantes, tipos y casillas               #
+# ===========================================================#
+
+# Tipos de terreno
+CAMINO = 0
+LIANA = 1
+TUNEL = 2
+MURO = 3
+
+# Colores para dibujar en el canvass
+COLORES_TERRRENO = {
+    CAMINO: "#d0d0d0",   # gris claro
+    LIANA: "#4fbf4a",    # verde liana
+    TUNEL: "#4e7dd9",    # azul túnel
+    MURO: "#222222",     # negro/gris oscuro
+}
+
+TAM_CELDA = 26
+FILAS_MAPA = 15
+COLS_MAPA = 20
+
+# Archivos de puntajes
+SCORES_ESCAPA_FILE = "scores_escapa.txt"
+SCORES_CAZADOR_FILE = "scores_cazador.txt"
+
+#E: tipo (int),
+#S: X.
+#R: tipo debe ser uno de CAMNO, LIANA, TUNEL o MURO.
+# Clase basee de casilla en el mapa.
+
+class Casilla:
+    def __init__(self, tipo):
+        self.tipo = tipo
+
+    #E: X
+    #S: boolean
+    #R: X
+    # Indica si el jugador puede pasar por esta casilla.
+    def permite_jugador(self):
+        return False
+
+    #E: X
+    #S: boolen
+    #R: X
+    # Indica si un enemigo puede pasar por esta casilla.
+    def permite_enemigo(self):
+        return False
+
+#E: X
+#S: X
+#R: X
+# Casilla de tipo CAMINO, la más basica
+
+class Camino(Casilla):
+
+    def __init__(self):
+        super().__init__(CAMINO)
+
+    #E: X
+    #S: bool
+    #R: X
+    # El jugador si puede pasar por el camino.
+    def permite_jugador(self):
+        return True
+
+    #E: X
+    #S: bool
+    #R: X
+    # El enemigo también puede pasar por el camino.
+    def permite_enemigo(self):
+        return True
+
+#E: X
+#S: X
+#R: X
+# Casilla de tipo LIAMA, solo la usan los enemigos (cazadores).
+class Liana(Casilla):
+    def __init__(self):
+        super().__init__(LIANA)
+
+    #E: X
+    #S: bool
+    #R: X
+    # El jugador no puede pasar por lianas (se controla en Jugador según modo).
+    def permite_jugador(self):
+        return False
+
+    #E: X
+    #S: bool
+    #R: X
+    # El enemigo sí puede usar lianas para moverse.
+    def permite_enemigo(self):
+        return True
+
+#E: X
+#S: X
+#R: X
+# Casilla de tipo TUNEL, exclusiva del jugador escapista.
+class Tunel(Casilla):
+    def __init__(self):
+        super().__init__(TUNEL)
+
+    #E: X
+    #S: bool
+    #R: X
+    # El jugador sI puede usar túneles (se filtra en Jugador según modo).
+    def permite_jugador(self):
+        return True
+
+    #E: X
+    #S: bool
+    #R: X
+    # El enemigo no puede pasar por túneles.
+    def permite_enemigo(self):
+        return False
+
+#E: X.
+#S: X.
+#R: X.
+# Casilla de tipo MURO, nadie puede pasar.
+class Muro(Casilla):
+    def __init__(self):
+        super().__init__(MURO)
+
+    #E: X.
+    #S: bool.
+    #R: X..
+    # El jugador no puede pasar muros.
+    def permite_jugador(self):
+        return False
+
+    #E: X.
+    #S: bool.
+    #R: X.
+    # El enemigo tampoco puede pasar muros.
+    def permite_enemigo(self):
+        return False
