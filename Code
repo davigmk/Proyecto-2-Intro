@@ -654,3 +654,56 @@ def pedir_nombre_jugador(root, texto="Nombre del jugador:"):
 
     top.wait_window()
     return resultado["nombre"]
+
+#E: X
+#S: X
+#R: X
+# Maneja toda la lógica del juego, modoss, GUI y dificultad
+
+class Juego:
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.title("Escapa / Cazador - Proyecto 2")
+        self.root.configure(bg="#111827")
+
+        # modo actual
+        self.modo = "escapa" 
+        self.dificultad = "medio"
+        self.config_dificultad = obtener_config_dificultad()
+
+        # laberinto y personajes
+        self.laberinto = Laberinto(FILAS_MAPA, COLS_MAPA)
+        self.jugador = Jugador(self.laberinto.inicio[0], self.laberinto.inicio[1], self.modo)
+        self.enemigos = []
+
+        self.nombre_jugador = ""
+        self.enemigos_eliminados = 0
+
+        # estado de juego
+        self.corriendo = False
+        self.en_partida = False
+        self.tiempo_inicio = None
+        self.tiempo_limite_cazador = 90
+        self.puntaje = 0
+        self.ultimo_mov_cazador = 0.0
+
+        # Layout principal
+        main_frame = tk.Frame(self.root, bg="#111827")
+        main_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        # Panel de opciones a la izquierda
+        panel_izq = tk.Frame(main_frame, bg="#020617", bd=1, relief="ridge")
+        panel_izq.pack(side="left", fill="y", padx=(0, 10), pady=5)
+
+        # Frame del mapa a la derecha, el canvas se centra dentro
+        frame_mapa = tk.Frame(main_frame, bg="#111827")
+        frame_mapa.pack(side="right", fill="both", expand=True, padx=(10, 0), pady=5)
+
+        self.canvas = tk.Canvas(
+            frame_mapa,
+            width=COLS_MAPA * TAM_CELDA,
+            height=FILAS_MAPA * TAM_CELDA + 80,
+            bg="#020617",
+            highlightthickness=0
+        )
+        self.canvas.pack(expand=True)
