@@ -1,1 +1,35 @@
+"""
+Proyecto 2 - Escapa del laberinto / Cazador.
+Grupo: David & Mario.
+Curso: Introducción a la Programación - Tec.
+"""
 
+import tkinter as tk
+from tkinter import messagebox
+import random
+import time
+import os
+
+# -------------------------------------------------#
+#                      Sonidos                     #
+# -------------------------------------------------#
+
+try:
+    import winsound
+
+    #E: freq (int), dur (int milisegundos).
+    #S: X.
+    #R: freq y dur deben ser positivos.
+    # Reproduce un beep con winsound en Windows.
+
+    def _beep(freq, dur):
+        winsound.Beep(freq, dur)
+
+except Exception:
+    #E: freq (int), dur (int milisegundos)
+    #S: X
+    #R: Ninguna, función silenciosa en sistemas sin winsound
+    # Dummy de beep para sistemas sin winsound
+
+    def _beep(freq, dur):
+        pass
