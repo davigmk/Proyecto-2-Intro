@@ -474,3 +474,183 @@ class Enemigo(PersonajeBase):
             if lab.dentro_rango(nf, nc) and self.puede_mover(lab, nf, nc):
                 res.append((nf, nc))
         return res
+
+# ============================================================
+#                 Lógica de juego y modos                    #
+# ============================================================
+
+#E: X
+#S: diccionario con parámetros de dificultad por modo
+#R: X
+# Devuelve la configuracion de dificultad para Escapa y Cazador
+
+def obtener_config_dificultad():
+    return {
+        "escapa": {
+            "facil": {
+                "num_enemigos": 2,
+                "intervalo_enemigos_ms": 260,
+                "pasos_sprint": 2,
+                "costo_sprint": 4,
+                "mult_puntaje": 1.0,
+            },
+            "medio": {
+                "num_enemigos": 3,
+                "intervalo_enemigos_ms": 200,
+                "pasos_sprint": 2,
+                "costo_sprint": 5,
+                "mult_puntaje": 1.5,
+            },
+            "dificil": {
+                "num_enemigos": 4,
+                "intervalo_enemigos_ms": 150,
+                "pasos_sprint": 1,
+                "costo_sprint": 6,
+                "mult_puntaje": 2.0,
+            },
+        },
+        "cazador": {
+            "facil": {
+                "num_enemigos": 3,
+                "intervalo_enemigos_ms": 260,
+                "delay_cazador": 0.08,
+                "puntaje_perdida": 8,
+                "tiempo_limite": 90,
+            },
+            "medio": {
+                "num_enemigos": 4,
+                "intervalo_enemigos_ms": 220,
+                "delay_cazador": 0.11,
+                "puntaje_perdida": 10,
+                "tiempo_limite": 90,
+            },
+            "dificil": {
+                "num_enemigos": 5,
+                "intervalo_enemigos_ms": 180,
+                "delay_cazador": 0.14,
+                "puntaje_perdida": 12,
+                "tiempo_limite": 90,
+            },
+        },
+    }
+
+
+#E: ruta (str)
+#S: lista de tuplas (nombre, puntaje)
+#R: Si el archivo no exiiste, devuelve lista vacía
+# Carga puntajes desde un archivo txt de top 5.
+
+def cargar_scores_desde_txt(ruta):
+    scores = []
+    if not os.path.isfile(ruta):
+        return scores
+    with open(ruta, "r", encoding="utf-8") as f:
+        for linea in f:
+            linea = linea.strip()
+            if not linea:
+                continue
+            partes = linea.split(";")
+            if len(partes) < 2:
+                continue
+            nombre = partes[0].strip()
+            try:
+                puntaje = int(partes[1])
+            except ValueError:
+                continue
+            scores.append((nombre, puntaje))
+    return scores
+
+
+#E: ruta (str), lista_scores (lista de tuplas)
+#S: X
+#R: X
+# Guarda la lista de puntajes en archivo txt.
+
+def guardar_scores_en_txt(ruta, lista_scores):
+    with open(ruta, "w", encoding="utf-8") as f:
+        for nombre, puntaje in lista_scores:
+            f.write(f"{nombre};{puntaje}\n")
+
+
+#E: modo (str), nombre (str), puntaje (int)
+#S: X
+#R: modo debe ser "escapa" o "cazador"
+# Actualiza el top 5 de puntajes según el modo si el nuevo entra en el ranking
+def actualizar_top5(modo, nombre, puntaje):
+    if modo == "escapa":
+        ruta = SCORES_ESCAPA_FILE
+    else:
+        ruta = SCORES_CAZADOR_FILE
+    scores = cargar_scores_desde_txt(ruta)
+    scores.append((nombre, puntaje))
+    scores.sort(key=lambda x: x[1], reverse=True)
+    top5 = scores[:5]
+    if (nombre, puntaje) in top5:
+        guardar_scores_en_txt(ruta, top5)
+
+
+#E: scores (lista de tuplas), titulo (str)
+#S: str
+#R: X
+# Da formato de texto a una lista de puntajes con titulo
+
+def formatear_scores(scores, titulo):
+    lineas = [titulo]
+    if not scores:
+        lineas.append("  (Sin registros)")
+    else:
+        pos = 1
+        for nombre, puntaje in scores:
+            lineas.append(f"  {pos}. {nombre} - {puntaje}")
+            pos += 1
+    return "\n".join(lineas)
+
+
+#E: root (tk.Tk), texto (str)
+#S: str o None
+#R: X
+# Pide el nombre del jugador en un pop up
+def pedir_nombre_jugador(root, texto="Nombre del jugador:"):
+    top = tk.Toplevel(root)
+    top.title("Nombre del jugador")
+    top.resizable(False, False)
+    top.grab_set()
+
+    sw = root.winfo_screenwidth()
+    sh = root.winfo_screenheight()
+    w, h = 300, 140
+    x = (sw // 2) - (w // 2)
+    y = (sh // 2) - (h // 2)
+    top.geometry(f"{w}x{h}+{x}+{y}")
+
+    frame = tk.Frame(top, bg="#20242d")
+    frame.pack(padx=10, pady=10, fill="both", expand=True)
+
+    lbl = tk.Label(frame, text=texto, fg="white", bg="#20242d")
+    lbl.pack(pady=5)
+
+    entrada = tk.Entry(frame, width=28)
+    entrada.pack(pady=5)
+    entrada.focus()
+
+    resultado = {"nombre": None}
+
+    def aceptar():
+        nombre = entrada.get().strip()
+        if not nombre:
+            messagebox.showerror("Error", "Debe escribir un nombre.", parent=top)
+            return
+        resultado["nombre"] = nombre
+        top.destroy()
+
+    def cancelar():
+        resultado["nombre"] = None
+        top.destroy()
+
+    btns = tk.Frame(frame, bg="#20242d")
+    btns.pack(pady=5)
+    tk.Button(btns, text="Aceptar", width=10, command=aceptar, bg="#3b82f6", fg="white", relief="flat").grid(row=0, column=0, padx=5)
+    tk.Button(btns, text="Cancelar", width=10, command=cancelar, bg="#9ca3af", fg="black", relief="flat").grid(row=0, column=1, padx=5)
+
+    top.wait_window()
+    return resultado["nombre"]
