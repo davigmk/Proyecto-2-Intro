@@ -959,4 +959,164 @@ class Juego:
         )
         btn.pack(pady=(0, 4))
 
-        top.wait_window()
+        top.wait_window
+
+    ###
+
+    #E: X
+    #S: dicc
+    #R: X
+    # Obtiene la configuración actual de dificultad para el modo activo.
+    def get_params_dificultad_actual(self):
+        self.dificultad = self.var_dif.get()
+        return self.config_dificultad[self.modo][self.dificultad]
+
+    #E: X
+    #S: int milisegundos
+    #R: X
+    # Devuelve el intervalo de movimiento de enemigos según modo y dificultad.
+    def get_intervalo_enemigos_ms(self):
+        params = self.get_params_dificultad_actual()
+        return params["intervalo_enemigos_ms"]
+
+    #E: X
+    #S: int pasos
+    #R: X
+    # Devuelve cuántas casillas avanza el escapista por pulsación al correr.
+    def get_pasos_sprint_escapa(self):
+        if self.modo != "escapa":
+            return 1
+        params = self.get_params_dificultad_actual()
+        return params["pasos_sprint"]
+
+    #E: X
+    #S: int
+    #R: X
+    # Devuelve cuánto cuesta en energía cada paso de sprint.
+    def get_costo_sprint(self):
+        params = self.get_params_dificultad_actual()
+        if self.modo == "escapa":
+            return params["costo_sprint"]
+        else:
+            return 4
+
+    #E: X
+    #S: float
+    #R: X
+    # Devuelve el multiplicador de puntaje de Escapa según dificultad.
+    def get_mult_puntaje_escapa(self):
+        params = self.config_dificultad["escapa"][self.var_dif.get()]
+        return params["mult_puntaje"]
+
+    #E: X
+    #S: float segundos
+    #R: X
+    # Devuelve el retraso mínimo entre movimientos del cazador.
+    def get_delay_cazador(self):
+        params = self.config_dificultad["cazador"][self.var_dif.get()]
+        return params["delay_cazador"]
+
+    #E: X
+    #S: (ganancia, perdida)
+    #R: X
+    # Devuelve puntajes de ganar/perder por enemigo en modo cazador (ganancia = 2 * perdida).
+    def get_puntajes_cazador(self):
+        params = self.config_dificultad["cazador"][self.var_dif.get()]
+        perdida = params["puntaje_perdida"]
+        ganancia = perdida * 2
+        return ganancia, perdida
+
+    #E: X
+    #S: int segundos
+    #R: X
+    # Devuelve el tiempo límite del modo cazador según dificultad.
+    def get_time_limit_cazador(self):
+        params = self.config_dificultad["cazador"][self.var_dif.get()]
+        return params["tiempo_limite"]
+
+    #E: X
+    #S: X
+    #R: X
+    # Crea enemigos en posiciones válidas según modo y dificultad.
+    def crear_enemigos_iniciales(self):
+        self.enemigos.clear()
+        params = self.get_params_dificultad_actual()
+        num = params["num_enemigos"]
+        for _ in range(num):
+            while True:
+                f = random.randint(0, self.laberinto.filas - 1)
+                c = random.randint(0, self.laberinto.cols - 1)
+                if not self.laberinto.permite_enemigo(f, c):
+                    continue
+                if (f, c) == self.laberinto.inicio:
+                    continue
+                self.enemigos.append(Enemigo(f, c))
+                break
+
+    #E: X
+    #S: X
+    #R: X
+    # Cambia el modo de juego (si no hay partida en curso).
+    def cambiar_modo(self):
+        if self.en_partida:
+            return
+        self.modo = self.var_modo.get()
+        self.jugador.modo = self.modo
+        self.lbl_estado.config(text=f"Estado: Modo {self.modo}")
+        self.crear_enemigos_iniciales()
+
+    #E: X
+    #S: X
+    #R: X
+    # Cambia la dificultad (si no hay partida en curso).
+    def cambiar_dificultad(self):
+        if self.en_partida:
+            return
+        self.dificultad = self.var_dif.get()
+        self.crear_enemigos_iniciales()
+
+    #E: X
+    #S: X
+    #R: X
+    # Crea una nueva partida: pide nombre, reinicia mapa, jugador y enemigos.
+    def nueva_partida(self):
+        nombre = pedir_nombre_jugador(self.root, "Ingrese su nombre para esta partida:")
+        if not nombre:
+            return
+        self.nombre_jugador = nombre
+        self.lbl_jugador.config(text=f"Jugador: {self.nombre_jugador}")
+
+        self.laberinto.generar_mapa()
+        self.jugador = Jugador(self.laberinto.inicio[0], self.laberinto.inicio[1], self.modo)
+        self.enemigos_eliminados = 0
+        self.crear_enemigos_iniciales()
+        self.en_partida = True
+        self.tiempo_inicio = time.time()
+
+        if self.modo == "cazador":
+            self.tiempo_limite_cazador = self.get_time_limit_cazador()
+        self.puntaje = 0
+        self.ultimo_mov_cazador = 0.0
+        self.lbl_estado.config(text="Estado: partida en curso")
+        self.lbl_puntaje.config(text="Puntaje: 0")
+
+    #E: X
+    #S: X
+    #R: X
+    # Detiene la partida actual, permitiendo cambiar modo/dificultad.
+    def detener_partida(self):
+        if self.en_partida:
+            self.en_partida = False
+            self.lbl_estado.config(text="Estado: partida detenida")
+
+    #E: X
+    #S: X
+    #R: X
+    # Muestra un popup con el Top 5 de ambos modos (escapa y cazador).
+
+    def mostrar_top_scores(self):
+        scores_esc = cargar_scores_desde_txt(SCORES_ESCAPA_FILE)
+        scores_caz = cargar_scores_desde_txt(SCORES_CAZADOR_FILE)
+        texto = formatear_scores(scores_esc, "Top 5 - Modo Escapa") + "\n\n" + \
+                formatear_scores(scores_caz, "Top 5 - Modo Cazador")
+        self.popup_info("Mejores puntajes", texto)
