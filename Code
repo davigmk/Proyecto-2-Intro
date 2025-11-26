@@ -1120,3 +1120,93 @@ class Juego:
         texto = formatear_scores(scores_esc, "Top 5 - Modo Escapa") + "\n\n" + \
                 formatear_scores(scores_caz, "Top 5 - Modo Cazador")
         self.popup_info("Mejores puntajes", texto)
+
+
+    #E: evento
+    #S: X
+    #R: X
+    # Maneja las teclas presionadas para mover y colocar las trampass
+
+    def on_key_press(self, event):
+        if not self.en_partida:
+            return
+        key = event.keysym
+
+        if key in ("Shift_L", "Shift_R"):
+            self.corriendo = True
+            return
+
+        df, dc = 0, 0
+        if key == "Up":
+            df, dc = -1, 0
+        elif key == "Down":
+            df, dc = 1, 0
+        elif key == "Left":
+            df, dc = 0, -1
+        elif key == "Right":
+            df, dc = 0, 1
+        elif key == "space":
+            if self.modo == "escapa":
+                ok = self.jugador.colocar_trampa()
+                if ok:
+                    self.lbl_estado.config(text="Estado: trampa colocada")
+                    reproducir_sonido("trampa_colocada")
+                else:
+                    self.lbl_estado.config(
+                        text="Estado: no se puede colocar trampa (máx 3 o cooldown)"
+                    )
+            return
+        else:
+            return
+        # Modo cazador, controla frecuencia dell movimiento para que vaya más lento
+        if self.modo == "cazador":
+            ahora = time.time()
+            if ahora - self.ultimo_mov_cazador < self.get_delay_cazador():
+                return
+            self.ultimo_mov_cazador = ahora
+
+        # Movimiento básico
+        movido = self.jugador.mover(self.laberinto, df, dc, self.corriendo)
+        if movido:
+            # Consumo de energía y correr
+            if self.corriendo and self.jugador.energia > 0:
+                costo = self.get_costo_sprint()
+
+                if self.modo == "escapa":
+                    # Sprint con pasos extra según dificultad
+                    self.jugador.energia = max(0, self.jugador.energia - costo)
+                    pasos_extra = max(0, self.get_pasos_sprint_escapa() - 1)
+                    for _ in range(pasos_extra):
+                        if self.jugador.energia <= 0:
+                            break
+                        segundo = self.jugador.mover(self.laberinto, df, dc, True)
+                        if not segundo:
+                            break
+                        self.jugador.energia = max(0, self.jugador.energia - costo)
+                else:
+                    # Modo cazador. Correr consume energía
+                    self.jugador.energia = max(0, self.jugador.energia - costo)
+
+            # Si el cazador pasa encima de un enemigo, lo elimina
+            if self.modo == "cazador":
+                jf, jc = self.jugador.posicion()
+                for e in self.enemigos:
+                    if e.vivo and e.posicion() == (jf, jc):
+                        ganancia, _ = self.get_puntajes_cazador()
+                        self.puntaje += ganancia
+                        self.lbl_puntaje.config(text=f"Puntaje: {self.puntaje}")
+                        reproducir_sonido("cazador_atrapa")
+                        
+                        #respawn en 5 segundos
+                        e.vivo = False
+                        e.muerto_timestamp = time.time()
+
+            self.verificar_eventos_post_movimiento()
+
+    #E: evento
+    #S: X
+    #R: X
+    # Desactiva el sprint cuando no se presiona shift
+
+    def on_key_release_shift(self, event):
+        self.corriendo = False
