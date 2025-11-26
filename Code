@@ -194,3 +194,101 @@ class Muro(Casilla):
     # El enemigo tampoco puede pasar muros.
     def permite_enemigo(self):
         return False
+
+# ============================================================
+#            Laberinto y generación aleatoria                #
+# ============================================================
+
+#E: filas (int), cols (int)
+#S: X
+#R: filas y cols > 0
+# Genera el mapa y asegura un camino valido de inicio a salida
+
+class Laberinto:
+    def __init__(self, filas, cols):
+        self.filas = filas
+        self.cols = cols
+        self.inicio = (0, 0)
+        self.salida = (filas - 1, cols - 1)
+        self.mapa = [[Camino() for _ in range(cols)] for _ in range(filas)]
+        self.generar_mapa()
+
+    #E: X
+    #S: X
+    #R: X
+    # Genera un mapa con un camino fijo y el resto aleatorio.
+
+    def generar_mapa(self):
+        grid = [[MURO for _ in range(self.cols)] for _ in range(self.filas)]
+        # camino base zig-zag fijo
+        r, c = self.inicio
+        grid[r][c] = CAMINO
+        while r < self.salida[0]:
+            r += 1
+            grid[r][c] = CAMINO
+        while c < self.salida[1]:
+            c += 1
+            grid[r][c] = CAMINO
+
+        # rellena el resto
+        for i in range(self.filas):
+            for j in range(self.cols):
+                if grid[i][j] == CAMINO:
+                    continue
+                tipo_random = random.choices(
+                    population=[CAMINO, LIANA, TUNEL, MURO],
+                    weights=[0.5, 0.15, 0.15, 0.2],
+                )[0]
+                grid[i][j] = tipo_random
+
+        nuevo_mapa = []
+        for i in range(self.filas):
+            fila_clases = []
+            for j in range(self.cols):
+                tipo = grid[i][j]
+                if tipo == CAMINO:
+                    fila_clases.append(Camino())
+                elif tipo == LIANA:
+                    fila_clases.append(Liana())
+                elif tipo == TUNEL:
+                    fila_clases.append(Tunel())
+                else:
+                    fila_clases.append(Muro())
+            nuevo_mapa.append(fila_clases)
+        self.mapa = nuevo_mapa
+
+    #E: fila (int), col (int)
+    #S: bool
+    #R: X
+    # Indica si una posición está dentro del tamaño del laberinto.
+    def dentro_rango(self, fila, col):
+        return 0 <= fila < self.filas and 0 <= col < self.cols
+
+    #E: fila (int), col (int)
+    #S: Casilla o None
+    #R: X
+    # Devuelve la casilla de una posición o none si está fuera del mapa
+    def casilla(self, fila, col):
+        if not self.dentro_rango(fila, col):
+            return None
+        return self.mapa[fila][col]
+
+    #E: fila (int), col (int)
+    #S: bool
+    #R: X
+    # Indica si el jugador puede estar en esa posición
+    def permite_jugador(self, fila, col):
+        c = self.casilla(fila, col)
+        if c is None:
+            return False
+        return c.permite_jugador()
+
+    #E: fila (int), col (int)
+    #S: bool
+    #R: X
+    # Indica si un enemigo puede estar en esa posicion
+    def permite_enemigo(self, fila, col):
+        c = self.casilla(fila, col)
+        if c is None:
+            return False
+        return c.permite_enemigo()
