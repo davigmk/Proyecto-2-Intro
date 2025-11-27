@@ -1580,4 +1580,23 @@ class Juego:
         self.lbl_energia.config(
             text=f"Energía: {int(self.jugador.energia)} / {self.jugador.energia_max}"
 
-    
+
+#MAINLOOP
+
+    #E: X
+    #S: X
+    #R: X
+    # Inicia el loop principal de Tkinter
+    def ejecutar(self):
+        self.root.mainloop()
+
+#EJECUCIÓN DEL PROGRAMA
+
+#E: X
+#S: X
+#R: X
+# Punto de entrada principal del programa
+if __name__ == "__main__":
+    random.seed()
+    juego = Juego()
+    juego.ejecutar()
