@@ -708,158 +708,158 @@ class Juego:
         )
         self.canvas.pack(expand=True)
 
-        #Panel lateral modificado (estético v2)
+        #Panel lateral 
         titulo = tk.Label(
-                    panel_izq,
-                    text="Escapa del Laberinto",
-                    font=("Segoe UI", 14, "bold"),
-                    bg="#020617",
-                    fg="#e5e7eb"
-                )
-                titulo.pack(pady=(10, 4), padx=10)
+            panel_izq,
+            text="Escapa del Laberinto",
+            font=("Segoe UI", 14, "bold"),
+            bg="#020617",
+            fg="#e5e7eb"
+        )
+        titulo.pack(pady=(10, 4), padx=10)
         
-                separador1 = tk.Frame(panel_izq, bg="#1f2937", height=2)
-                separador1.pack(fill="x", padx=10, pady=(0, 8))
+        separador1 = tk.Frame(panel_izq, bg="#1f2937", height=2)
+        separador1.pack(fill="x", padx=10, pady=(0, 8))
         
-                blk_modo = tk.Frame(panel_izq, bg="#020617")
-                blk_modo.pack(fill="x", padx=12, pady=4)
-                tk.Label(blk_modo, text="Modo de juego", font=("Segoe UI", 10, "bold"),
-                         bg="#020617", fg="#9ca3af").pack(anchor="w")
+        blk_modo = tk.Frame(panel_izq, bg="#020617")
+        blk_modo.pack(fill="x", padx=12, pady=4)
+        tk.Label(blk_modo, text="Modo de juego", font=("Segoe UI", 10, "bold"),
+                bg="#020617", fg="#9ca3af").pack(anchor="w")
         
-                self.var_modo = tk.StringVar(value="escapa")
-                rb1 = tk.Radiobutton(
-                    blk_modo,
-                    text="Escapa",
-                    variable=self.var_modo,
-                    value="escapa",
-                    command=self.cambiar_modo,
-                    bg="#020617",
-                    fg="#e5e7eb",
-                    selectcolor="#1d4ed8",
-                    activebackground="#020617",
-                    activeforeground="#e5e7eb",
-                    anchor="w",
-                    justify="left"
-                )
-                rb2 = tk.Radiobutton(
-                    blk_modo,
-                    text="Cazador",
-                    variable=self.var_modo,
-                    value="cazador",
-                    command=self.cambiar_modo,
-                    bg="#020617",
-                    fg="#e5e7eb",
-                    selectcolor="#1d4ed8",
-                    activebackground="#020617",
-                    activeforeground="#e5e7eb",
-                    anchor="w",
-                    justify="left"
-                )
-                rb1.pack(anchor="w")
-                rb2.pack(anchor="w")
+        self.var_modo = tk.StringVar(value="escapa")
+        rb1 = tk.Radiobutton(
+            blk_modo,
+            text="Escapa",
+            variable=self.var_modo,
+            value="escapa",
+            command=self.cambiar_modo,
+            bg="#020617",
+            fg="#e5e7eb",
+            selectcolor="#1d4ed8",
+            activebackground="#020617",
+            activeforeground="#e5e7eb",
+            anchor="w",
+            justify="left"
+        )
+        rb2 = tk.Radiobutton(
+            blk_modo,
+            text="Cazador",
+            variable=self.var_modo,
+            value="cazador",
+            command=self.cambiar_modo,
+            bg="#020617",
+            fg="#e5e7eb",
+            selectcolor="#1d4ed8",
+            activebackground="#020617",
+            activeforeground="#e5e7eb",
+            anchor="w",
+            justify="left"
+        )
+        rb1.pack(anchor="w")
+        rb2.pack(anchor="w")
         
-                blk_dif = tk.Frame(panel_izq, bg="#020617")
-                blk_dif.pack(fill="x", padx=12, pady=(4, 6))
-                tk.Label(blk_dif, text="Dificultad", font=("Segoe UI", 10, "bold"),
-                         bg="#020617", fg="#9ca3af").pack(anchor="w")
+        blk_dif = tk.Frame(panel_izq, bg="#020617")
+        blk_dif.pack(fill="x", padx=12, pady=(4, 6))
+        tk.Label(blk_dif, text="Dificultad", font=("Segoe UI", 10, "bold"),
+                bg="#020617", fg="#9ca3af").pack(anchor="w")
         
-                self.var_dif = tk.StringVar(value="medio")
-                tk.Radiobutton(
-                    blk_dif, text="Fácil",
-                    variable=self.var_dif, value="facil",
-                    command=self.cambiar_dificultad,
-                    bg="#020617", fg="#e5e7eb",
-                    selectcolor="#15803d",
-                    activebackground="#020617",
-                    activeforeground="#e5e7eb",
-                    anchor="w"
-                ).pack(anchor="w")
-                tk.Radiobutton(
-                    blk_dif, text="Medio",
-                    variable=self.var_dif, value="medio",
-                    command=self.cambiar_dificultad,
-                    bg="#020617", fg="#e5e7eb",
-                    selectcolor="#ea580c",
-                    activebackground="#020617",
-                    activeforeground="#e5e7eb",
-                    anchor="w"
-                ).pack(anchor="w")
-                tk.Radiobutton(
-                    blk_dif, text="Difícil",
-                    variable=self.var_dif, value="dificil",
-                    command=self.cambiar_dificultad,
-                    bg="#020617", fg="#e5e7eb",
-                    selectcolor="#b91c1c",
-                    activebackground="#020617",
-                    activeforeground="#e5e7eb",
-                    anchor="w"
-                ).pack(anchor="w")
+        self.var_dif = tk.StringVar(value="medio")
+        tk.Radiobutton(
+            blk_dif, text="Fácil",
+            variable=self.var_dif, value="facil",
+            command=self.cambiar_dificultad,
+            bg="#020617", fg="#e5e7eb",
+            selectcolor="#15803d",
+            activebackground="#020617",
+            activeforeground="#e5e7eb",
+            anchor="w"
+        ).pack(anchor="w")
+        tk.Radiobutton(
+            blk_dif, text="Medio",
+            variable=self.var_dif, value="medio",
+            command=self.cambiar_dificultad,
+            bg="#020617", fg="#e5e7eb",
+            selectcolor="#ea580c",
+            activebackground="#020617",
+            activeforeground="#e5e7eb",
+            anchor="w"
+        ).pack(anchor="w")
+        tk.Radiobutton(
+            blk_dif, text="Difícil",
+            variable=self.var_dif, value="dificil",
+            command=self.cambiar_dificultad,
+            bg="#020617", fg="#e5e7eb",
+            selectcolor="#b91c1c",
+            activebackground="#020617",
+            activeforeground="#e5e7eb",
+            anchor="w"
+        ).pack(anchor="w")
         
-                separador2 = tk.Frame(panel_izq, bg="#1f2937", height=2)
-                separador2.pack(fill="x", padx=10, pady=(4, 8))
+        separador2 = tk.Frame(panel_izq, bg="#1f2937", height=2)
+        separador2.pack(fill="x", padx=10, pady=(4, 8))
         
-                def btn_estetico(texto, comando, color="#2563eb"):
-                    return tk.Button(
-                        panel_izq,
-                        text=texto,
-                        command=comando,
-                        bg=color,
-                        fg="white",
-                        relief="flat",
-                        activebackground="#1d4ed8",
-                        activeforeground="white",
-                        font=("Segoe UI", 9, "bold"),
-                        padx=8,
-                        pady=4
-                    )
+        def btn_estetico(texto, comando, color="#2563eb"):
+            return tk.Button(
+                panel_izq,
+                text=texto,
+                command=comando,
+                bg=color,
+                fg="white",
+                relief="flat",
+                activebackground="#1d4ed8",
+                activeforeground="white",
+                font=("Segoe UI", 9, "bold"),
+                padx=8,
+                pady=4
+            )
         
-                btn_estetico("Nueva partida", self.nueva_partida, "#16a34a").pack(fill="x", padx=12, pady=(2, 4))
-                btn_estetico("Detener partida", self.detener_partida, "#b91c1c").pack(fill="x", padx=12, pady=2)
-                btn_estetico("Ver Top 5 puntajes", self.mostrar_top_scores, "#2563eb").pack(fill="x", padx=12, pady=(2, 8))
+        btn_estetico("Nueva partida", self.nueva_partida, "#16a34a").pack(fill="x", padx=12, pady=(2, 4))
+        btn_estetico("Detener partida", self.detener_partida, "#b91c1c").pack(fill="x", padx=12, pady=2)
+        btn_estetico("Ver Top 5 puntajes", self.mostrar_top_scores, "#2563eb").pack(fill="x", padx=12, pady=(2, 8))
         
-                separador3 = tk.Frame(panel_izq, bg="#1f2937", height=2)
-                separador3.pack(fill="x", padx=10, pady=(4, 8))
+        separador3 = tk.Frame(panel_izq, bg="#1f2937", height=2)
+        separador3.pack(fill="x", padx=10, pady=(4, 8))
         
-                self.lbl_estado = tk.Label(panel_izq, text="Estado: listo", justify="left",
-                                           bg="#020617", fg="#e5e7eb", font=("Segoe UI", 9))
-                self.lbl_estado.pack(pady=2, anchor="w", padx=12)
+        self.lbl_estado = tk.Label(panel_izq, text="Estado: listo", justify="left",
+                                    bg="#020617", fg="#e5e7eb", font=("Segoe UI", 9))
+        self.lbl_estado.pack(pady=2, anchor="w", padx=12)
         
-                self.lbl_jugador = tk.Label(panel_izq, text="Jugador: -", justify="left",
-                                            bg="#020617", fg="#e5e7eb", font=("Segoe UI", 9))
-                self.lbl_jugador.pack(pady=2, anchor="w", padx=12)
+        self.lbl_jugador = tk.Label(panel_izq, text="Jugador: -", justify="left",
+                                    bg="#020617", fg="#e5e7eb", font=("Segoe UI", 9))
+        self.lbl_jugador.pack(pady=2, anchor="w", padx=12)
         
-                self.lbl_puntaje = tk.Label(panel_izq, text="Puntaje: 0", justify="left",
-                                            bg="#020617", fg="#e5e7eb", font=("Segoe UI", 9))
-                self.lbl_puntaje.pack(pady=2, anchor="w", padx=12)
+        self.lbl_puntaje = tk.Label(panel_izq, text="Puntaje: 0", justify="left",
+                                    bg="#020617", fg="#e5e7eb", font=("Segoe UI", 9))
+        self.lbl_puntaje.pack(pady=2, anchor="w", padx=12)
         
-                self.lbl_tiempo = tk.Label(panel_izq, text="Tiempo: 0.0 s", justify="left",
-                                           bg="#020617", fg="#e5e7eb", font=("Segoe UI", 9))
-                self.lbl_tiempo.pack(pady=2, anchor="w", padx=12)
+        self.lbl_tiempo = tk.Label(panel_izq, text="Tiempo: 0.0 s", justify="left",
+                                    bg="#020617", fg="#e5e7eb", font=("Segoe UI", 9))
+        self.lbl_tiempo.pack(pady=2, anchor="w", padx=12)
         
-                self.lbl_energia = tk.Label(panel_izq, text="Energía: 100 / 100", justify="left",
-                                            bg="#020617", fg="#e5e7eb", font=("Segoe UI", 9))
-                self.lbl_energia.pack(pady=2, anchor="w", padx=12)
+        self.lbl_energia = tk.Label(panel_izq, text="Energía: 100 / 100", justify="left",
+                                    bg="#020617", fg="#e5e7eb", font=("Segoe UI", 9))
+        self.lbl_energia.pack(pady=2, anchor="w", padx=12)
         
-                hint = (
-                    "Controles:\n"
-                    "  Flechas: Mover\n"
-                    "  Shift: Correr (Consume energía)\n"
-                    "  Espacio: Trampa (Modo Escapa)\n"
-                )
-                tk.Label(panel_izq, text=hint, justify="left",
-                         bg="#020617", fg="#9ca3af", font=("Segoe UI", 8)).pack(pady=10, anchor="w", padx=12)
+        hint = (
+            "Controles:\n"
+            "  Flechas: Mover\n"
+            "  Shift: Correr (Consume energía)\n"
+            "  Espacio: Trampa (Modo Escapa)\n"
+        )
+        tk.Label(panel_izq, text=hint, justify="left",
+                bg="#020617", fg="#9ca3af", font=("Segoe UI", 8)).pack(pady=10, anchor="w", padx=12)
         
-                # eventos
-                self.root.bind("<KeyPress>", self.on_key_press)
-                self.root.bind("<KeyRelease-Shift_L>", self.on_key_release_shift)
-                self.root.bind("<KeyRelease-Shift_R>", self.on_key_release_shift)
+        # eventos
+        self.root.bind("<KeyPress>", self.on_key_press)
+        self.root.bind("<KeyRelease-Shift_L>", self.on_key_release_shift)
+        self.root.bind("<KeyRelease-Shift_R>", self.on_key_release_shift)
         
-                # bucles periódicos
-                self.actualizar_dibujo()
-                self.loop_enemigos()
+        # bucles periódicos
+        self.actualizar_dibujo()
+        self.loop_enemigos()
         
-                # enemigos iniciales (después de crear var_dif)
-                self.crear_enemigos_iniciales()
+                # enemigos iniciales 
+        self.crear_enemigos_iniciales()
 
     # popups 
     #E: titulo (str), texto (str)
@@ -1578,7 +1578,7 @@ class Juego:
 
         self.lbl_tiempo.config(text=f"Tiempo: {dur:.1f} s")
         self.lbl_energia.config(
-            text=f"Energía: {int(self.jugador.energia)} / {self.jugador.energia_max}"
+            text=f"Energía: {int(self.jugador.energia)} / {self.jugador.energia_max}")
 
 
 #MAINLOOP
