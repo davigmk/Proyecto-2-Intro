@@ -1310,3 +1310,125 @@ class Juego:
 
         if self.nombre_jugador:
             actualizar_top5("cazador", self.nombre_jugador, self.puntaje)
+
+   
+# movimiento de enemigos 
+    #E: X
+    #S: X
+    #R: X
+    # Bucle de actualización de enemigos, dependiendo del modo y la  dificultad
+    
+    def loop_enemigos(self):
+        if self.en_partida:
+            if self.modo == "escapa":
+                self.actualizar_enemigos_escapa()
+            else:
+                self.actualizar_enemigos_cazador()
+        delay = self.get_intervalo_enemigos_ms()
+        self.root.after(delay, self.loop_enemigos)
+
+    #E: X
+    #S: X
+    #R: X
+    # Actualiza el movimiento de enemigos y trampas en modo Escapa
+
+    def actualizar_enemigos_escapa(self):
+        jf, jc = self.jugador.posicion()
+
+        # respawn de enemigos(10 seg)
+        ahora = time.time()
+        for e in self.enemigos:
+            if not e.vivo and (ahora - e.muerto_timestamp) >= 10.0:
+                while True:
+                    f = random.randint(0, self.laberinto.filas - 1)
+                    c = random.randint(0, self.laberinto.cols - 1)
+                    if not self.laberinto.permite_enemigo(f, c):
+                        continue
+                    e.fila, e.col = f, c
+                    e.vivo = True
+                    reproducir_sonido("enemigo_respawn")
+                    break
+
+        # movimiento de enemigos vivos hacia el jugador
+        for e in self.enemigos:
+            if not e.vivo:
+                continue
+            e.mover_hacia(self.laberinto, jf, jc)
+
+        # choque enemigo-jugador
+        for e in self.enemigos:
+            if not e.vivo:
+                continue
+            if e.posicion() == (jf, jc):
+                self.perder("te atrapó un cazador (modo Escapa)")
+                return
+
+        #trampas
+        nuevas_trampas = []
+        for (tf, tc, t0) in self.jugador.trampas:
+            atrapado = False
+            for e in self.enemigos:
+                if e.vivo and (e.fila, e.col) == (tf, tc):
+                    e.vivo = False
+                    e.muerto_timestamp = time.time()
+                    atrapado = True
+                    self.enemigos_eliminados += 1
+                    reproducir_sonido("enemigo_en_trampa")
+            if not atrapado:
+                nuevas_trampas.append((tf, tc, t0))
+            else:
+                self.puntaje += 5
+        self.jugador.trampas = nuevas_trampas
+        self.lbl_puntaje.config(text=f"Puntaje: {self.puntaje}")
+
+    #E: X
+    #S: X
+    #R: X
+    # Actualiza el movimiento de escapistas en modo Cazador, respawn de 5 seg.
+
+    def actualizar_enemigos_cazador(self):
+        jf, jc = self.jugador.posicion()
+        salida = self.laberinto.salida
+
+        # respawn luego de ser atrapados o llegar a la salida
+        ahora = time.time()
+        for e in self.enemigos:
+            if not e.vivo and (ahora - e.muerto_timestamp) >= 5.0:
+                while True:
+                    f = random.randint(0, self.laberinto.filas - 1)
+                    c = random.randint(0, self.laberinto.cols - 1)
+                    if not self.laberinto.permite_enemigo(f, c):
+                        continue
+                    e.fila, e.col = f, c
+                    e.vivo = True
+                    reproducir_sonido("enemigo_respawn")
+                    break
+
+        # muwve enemigos huyendo del jugador
+        for e in self.enemigos:
+            if not e.vivo:
+                continue
+            e.mover_alejandose(self.laberinto, jf, jc)
+
+        # enemigoss llegan a la salida
+        for e in self.enemigos:
+            if not e.vivo:
+                continue
+            if e.posicion() == salida:
+                self.actualizar_puntaje_cazador(atrapado=False, enemigo_salio=True)
+                # marca para respawn
+                e.vivo = False
+                e.muerto_timestamp = time.time()
+
+        # revisa si jugador choca contra eneemigo 
+        for e in self.enemigos:
+            if not e.vivo:
+                continue
+            if e.posicion() == (jf, jc):
+                ganancia, _ = self.get_puntajes_cazador()
+                self.puntaje += ganancia
+                self.lbl_puntaje.config(text=f"Puntaje: {self.puntaje}")
+                reproducir_sonido("cazador_atrapa")
+                # marca para respawn
+                e.vivo = False
+                e.muerto_timestamp = time.time()
