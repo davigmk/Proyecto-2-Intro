@@ -1211,7 +1211,7 @@ class Juego:
     def on_key_release_shift(self, event):
         self.corriendo = False
 
-#Configuración lógica del juego.
+    #Configuración lógica del juego.
 
     #E: X
     #S: X
@@ -1432,3 +1432,152 @@ class Juego:
                 # marca para respawn
                 e.vivo = False
                 e.muerto_timestamp = time.time()
+
+    # Parte Gráfica 2
+
+    #E: X
+    #S: X
+    #R: X
+    # Redibuja el mapa, personajes y HUD en el canvas. Regenera energía progresivamente.
+    def actualizar_dibujo(self):
+        # regeneración progresiva de energía (no ligada al movimiento)
+        if self.jugador.energia < self.jugador.energia_max:
+            # ~5 puntos por segundo (0.4 cada ~0.08s)
+            self.jugador.energia = min(
+                self.jugador.energia_max,
+                self.jugador.energia + 0.4
+            )
+
+        self.canvas.delete("all")
+        for i in range(self.laberinto.filas):
+            for j in range(self.laberinto.cols):
+                cas = self.laberinto.casilla(i, j)
+                color = COLORES_TERRRENO.get(cas.tipo, "#000000")
+                x1 = j * TAM_CELDA
+                y1 = i * TAM_CELDA + 80
+                x2 = x1 + TAM_CELDA
+                y2 = y1 + TAM_CELDA
+                self.canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="#111827")
+
+        # salida
+        sf, sc = self.laberinto.salida
+        x1 = sc * TAM_CELDA
+        y1 = sf * TAM_CELDA + 80
+        x2 = x1 + TAM_CELDA
+        y2 = y1 + TAM_CELDA
+        self.canvas.create_rectangle(x1, y1, x2, y2, outline="#facc15", width=3)
+
+        # trampas
+        for (tf, tc, t0) in self.jugador.trampas:
+            cx = tc * TAM_CELDA + TAM_CELDA / 2
+            cy = tf * TAM_CELDA + 80 + TAM_CELDA / 2
+            r = TAM_CELDA / 3
+            self.canvas.create_polygon(
+                cx, cy - r,
+                cx - r, cy + r,
+                cx + r, cy + r,
+                fill="#ef4444",
+                outline="#111827"
+            )
+
+        # enemigos (color según modo)
+        for e in self.enemigos:
+            if not e.vivo:
+                continue
+            ef, ec = e.posicion()
+            cx = ec * TAM_CELDA + TAM_CELDA / 2
+            cy = ef * TAM_CELDA + 80 + TAM_CELDA / 2
+            r = TAM_CELDA / 3
+
+            if self.modo == "escapa":
+                color_enemigo = "#ef4444"  # rojo cazadores
+            else:
+                color_enemigo = "#facc15"  # amarillo escapistas
+
+            self.canvas.create_oval(
+                cx - r, cy - r, cx + r, cy + r,
+                fill=color_enemigo,
+                outline="#020617"
+            )
+
+        # jugador
+        jf, jc = self.jugador.posicion()
+        cx = jc * TAM_CELDA + TAM_CELDA / 2
+        cy = jf * TAM_CELDA + 80 + TAM_CELDA / 2
+        r = TAM_CELDA / 3
+        self.canvas.create_oval(
+            cx - r, cy - r, cx + r, cy + r,
+            fill="#22d3ee",
+            outline="#020617"
+        )
+
+        self.dibujar_hud()
+        self.root.after(80, self.actualizar_dibujo)
+
+    #E: X
+    #S: X
+    #R: X
+    # Dibuja la barra superior: modo, energía, tiempo y límite (en cazador).
+    def dibujar_hud(self):
+        self.canvas.create_rectangle(
+            0, 0, COLS_MAPA * TAM_CELDA, 80,
+            fill="#020617", outline="#020617"
+        )
+
+        self.canvas.create_text(
+            10, 15, anchor="w",
+            text=f"Modo: {self.modo.capitalize()} ({self.var_dif.get()})",
+            fill="#e5e7eb",
+            font=("Segoe UI", 10, "bold")
+        )
+
+        porc = self.jugador.energia / float(self.jugador.energia_max)
+        ancho_total = 200
+        alto_barra = 16
+        x1 = 10
+        y1 = 40
+        x2 = x1 + ancho_total
+        y2 = y1 + alto_barra
+        self.canvas.create_rectangle(x1, y1, x2, y2, outline="#e5e7eb")
+        x2_fill = x1 + ancho_total * porc
+        color = "#22c55e" if porc > 0.5 else "#eab308" if porc > 0.2 else "#ef4444"
+        self.canvas.create_rectangle(x1, y1, x2_fill, y2, fill=color, outline=color)
+        self.canvas.create_text(
+            x2 + 10, (y1 + y2) / 2,
+            anchor="w",
+            text=f"Energía {self.jugador.energia:.0f}/{self.jugador.energia_max}",
+            fill="#e5e7eb",
+            font=("Segoe UI", 9)
+        )
+
+        if self.en_partida and self.tiempo_inicio is not None:
+            dur = time.time() - self.tiempo_inicio
+        else:
+            dur = 0.0
+
+        if self.modo == "cazador":
+            limite = self.get_time_limit_cazador()
+            restante = max(0.0, limite - dur)
+            self.canvas.create_text(
+                COLS_MAPA * TAM_CELDA - 10, 15,
+                anchor="e",
+                text=f"Tiempo: {dur:.1f} s (restante {restante:.1f})",
+                fill="#e5e7eb",
+                font=("Segoe UI", 9)
+            )
+            if self.en_partida and restante <= 0.0:
+                self.finalizar_tiempo_cazador()
+        else:
+            self.canvas.create_text(
+                COLS_MAPA * TAM_CELDA - 10, 15,
+                anchor="e",
+                text=f"Tiempo: {dur:.1f} s",
+                fill="#e5e7eb",
+                font=("Segoe UI", 9)
+            )
+
+        self.lbl_tiempo.config(text=f"Tiempo: {dur:.1f} s")
+        self.lbl_energia.config(
+            text=f"Energía: {int(self.jugador.energia)} / {self.jugador.energia_max}"
+
+    
