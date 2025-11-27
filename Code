@@ -1210,3 +1210,103 @@ class Juego:
 
     def on_key_release_shift(self, event):
         self.corriendo = False
+
+#Configuración lógica del juego.
+
+    #E: X
+    #S: X
+    #R: X
+    # Revisa eventos luego de que el jugador se mueve (ej. llegar a la salida).
+    def verificar_eventos_post_movimiento(self):
+        if (self.jugador.fila, self.jugador.col) == self.laberinto.salida:
+            if self.modo == "escapa":
+                self.ganar_escapa()
+
+    #E: X
+    #S: X
+    #R: X
+    # Lógica de victoria en modo Escapa, calcula puntaje, guarda y muestra pop up bonito.
+    def ganar_escapa(self):
+        if not self.en_partida:
+            return
+        self.en_partida = False
+        dur = time.time() - self.tiempo_inicio if self.tiempo_inicio else 0
+        base = max(0, int(1000 - 10 * dur))
+        bono_trampas = len(self.jugador.trampas) * 5
+        bono_enemigos = self.enemigos_eliminados * 5
+        mult = self.get_mult_puntaje_escapa()
+        self.puntaje = int((base + bono_trampas + bono_enemigos) * mult)
+        self.lbl_estado.config(text=f"Ganaste (Escapa). Tiempo: {dur:.1f}s")
+        self.lbl_puntaje.config(text=f"Puntaje: {self.puntaje}")
+
+        reproducir_sonido("escapa_gana")
+        texto = (
+            f"¡Has escapado!\n\n"
+            f"Jugador: {self.nombre_jugador}\n"
+            f"Tiempo: {dur:.1f} s\n"
+            f"Puntaje: {self.puntaje}"
+        )
+        self.popup_info("Victoria - Escapa", texto)
+
+        if self.nombre_jugador:
+            actualizar_top5("escapa", self.nombre_jugador, self.puntaje)
+
+    #E: motivo (str)
+    #S: X
+    #R: X
+    # Termina la partida y muestra pop up de derrota con puntaje y tiempo.
+    def perder(self, motivo):
+        if not self.en_partida:
+            return
+        self.en_partida = False
+        dur = time.time() - self.tiempo_inicio if self.tiempo_inicio else 0
+        self.lbl_estado.config(text=f"Perdiste: {motivo}")
+        reproducir_sonido("escapa_pierde")
+        texto = (
+            f"Has perdido.\n\n"
+            f"Causa: {motivo}\n"
+            f"Jugador: {self.nombre_jugador}\n"
+            f"Tiempo: {dur:.1f} s\n"
+            f"Puntaje: {self.puntaje}"
+        )
+        self.popup_info("Derrota", texto)
+
+        if self.modo == "escapa" and self.nombre_jugador:
+            actualizar_top5("escapa", self.nombre_jugador, self.puntaje)
+
+    #E: atrapado (bool), enemigo_salio (bool)
+    #S: X
+    #R: Modo debe ser "cazador"
+    # Actualiza puntaje en modo cazador dependiendo de atrapar o perder enemigos.
+    def actualizar_puntaje_cazador(self, atrapado=False, enemigo_salio=False):
+        ganancia, perdida = self.get_puntajes_cazador()
+        if atrapado:
+            self.puntaje += ganancia
+            reproducir_sonido("cazador_atrapa")
+        if enemigo_salio:
+            self.puntaje -= perdida
+            if self.puntaje < 0:
+                self.puntaje = 0
+            reproducir_sonido("enemigo_escapa")
+        self.lbl_puntaje.config(text=f"Puntaje: {self.puntaje}")
+
+    #E: X
+    #S: X
+    #R: X
+    # Finaliza el modo cazador al agotarse el tiempo límite y muestra pop up.
+    def finalizar_tiempo_cazador(self):
+        if not self.en_partida or self.modo != "cazador":
+            return
+        self.en_partida = False
+        dur = time.time() - self.tiempo_inicio if self.tiempo_inicio else 0
+        self.lbl_estado.config(text="Fin del tiempo (modo Cazador)")
+        texto = (
+            f"Tiempo límite alcanzado.\n\n"
+            f"Jugador: {self.nombre_jugador}\n"
+            f"Tiempo: {dur:.1f} s\n"
+            f"Puntaje final: {self.puntaje}"
+        )
+        self.popup_info("Tiempo agotado - Cazador", texto)
+
+        if self.nombre_jugador:
+            actualizar_top5("cazador", self.nombre_jugador, self.puntaje)
